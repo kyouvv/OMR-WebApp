@@ -1,0 +1,50 @@
+{% include 'header.html'   %}
+<body>
+    {% set items = 50 %}
+    {% set column = 2 %}
+    <div class="container">
+        <form action="/">
+            <button type="submit" class="btn btn-default">Back</button>
+        </form>
+        <div class="row">
+            {% for c in range(column) %}
+                {% if c == 0 %}
+                    <div class="col-sm-4">
+                        
+                    {% for i in range(items - 25) %}
+                    <form action="/answerkey" method="post" name="{{ i }}">
+                        <div class="form-group">
+                        <label class="label label-default" for="a">Question {{ i + 1 }}</label>
+                        <input type="checkbox" name="question{{ i + 1 }}" value="a">
+                        <input type="checkbox" name="question{{ i + 1 }}" value="b">
+                        <input type="checkbox" name="question{{ i + 1 }}" value="c">
+                        <input type="checkbox" name="question{{ i + 1 }}" value="d">
+                        <input type="checkbox" name="question{{ i + 1 }}" value="e">
+                        </div>
+                    {% endfor %}
+                        </div>
+                    <div class="col-sm-4">
+                        
+                    {% for i in range(items - 25) %}
+                    <form action="/answerkey" method="post" name="{{ i + 26 }}">
+                        <div class="form-group">
+                        <label class="label label-default" for="a">Question {{ i + 26 }}</label>
+                        <input type="checkbox" name="question{{ i + 26 }}" value="a">
+                        <input type="checkbox" name="question{{ i + 26 }}" value="b">
+                        <input type="checkbox" name="question{{ i + 26 }}" value="c">
+                        <input type="checkbox" name="question{{ i + 26 }}" value="d">
+                        <input type="checkbox" name="question{{ i + 26 }}" value="e">
+                        </div>
+                    {% endfor %}
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                {% endif %}
+                    
+            {% endfor %}
+            {% if answerkey %}
+                
+            {% endif %}
+        </div>
+</body>
+
+

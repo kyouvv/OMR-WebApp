@@ -1,0 +1,55 @@
+{% include 'header.html'   %}
+<p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</p>
+<body>
+   <div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+          <form action="/answerkey">
+            <input class="btn btn-info" type="submit" value="Answer Key">
+          </form>
+          <form action="/check" method="post">
+            <input class="btn btn-success" type="submit" name="redirect_button" value="Check Paper">
+          </form>
+        </div>
+        <div class="col-sm-4">
+          <form method="post" action="/" enctype="multipart/form-data">
+            <div class="form-group">
+              <input type="file" name="image" class="form-control" autocomplete="off" accept=".png, .jpeg, .jpg" required>
+            </div>
+            <input class="btn btn-primary" type="submit" value="Submit">
+        </form>
+        </div><div class="col-sm-4"> 
+        </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-4">
+      </div>
+      <div class="col-sm-4">
+        {% if filename %}
+          <img class="img-responsive" src="{{ url_for('static', filename= 'img/'+ filename ) }}" alt="Uploaded Image">
+        {% endif %}
+      </div>
+      <div class="col-sm-4"></div>
+     </div>
+ </div>
+ <div class="row">
+  <div class="col-sm-4">
+  </div>
+  <div class="col-sm-4">
+    {% if score %}
+      <h1 class="text">Score: {{ score }}</h1>
+    {% endif %}
+  </div>
+  <div class="col-sm-4"></div>
+ </div>
+</body>
