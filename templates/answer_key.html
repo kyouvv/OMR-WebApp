@@ -3,7 +3,7 @@
     {% set items = 50 %}
     {% set column = 2 %}
     <div class="container">
-        <form action="/">
+        <form action="{{ url_for('home') }}">
             <button type="submit" class="btn btn-default">Back</button>
         </form>
         <div class="row">
@@ -41,10 +41,18 @@
                 {% endif %}
                     
             {% endfor %}
-            {% if answerkey %}
-                
-            {% endif %}
         </div>
+        {% if answerkey %}
+        <div class="col-sm-4">
+            <ul>
+                <h1> Answer Key</h1>
+            {% for key, answer in answerkey.items() %}
+                <li>{{ key }}. {{ answer }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    </div>
 </body>
 
 

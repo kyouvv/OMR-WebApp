@@ -2,15 +2,15 @@
 <p>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <ul>
         {% for message in messages %}
-          <li>{{ message }}</li>
+          <p class="text text-center">{{ message }}</p>
         {% endfor %}
-        </ul>
       {% endif %}
     {% endwith %}
 </p>
 <body>
+
+
    <div class="container">
     <div class="row">
         <div class="col-sm-4">
@@ -29,27 +29,67 @@
             <input class="btn btn-primary" type="submit" value="Submit">
         </form>
         </div><div class="col-sm-4"> 
+          {% if score %}
+          <h1 class="text">Score: {{ score }}</h1>
+        {% endif %}
         </div>
      </div>
      <div class="row">
       <div class="col-sm-4">
+        {% if answerkey %}
+          <h2>Answer Key</h2>
+          <ul>
+            {% for key, answer in answerkey.items() %}
+              <li>{{ key }}. {{ answer }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
       <div class="col-sm-4">
         {% if filename %}
           <img class="img-responsive" src="{{ url_for('static', filename= 'img/'+ filename ) }}" alt="Uploaded Image">
         {% endif %}
       </div>
+      <div class="col-sm-4">
+        {% if item_analysis_result %}
+  <h2>Item Analysis Results</h2>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Question</th>
+        <th scope="col">Option A</th>
+        <th scope="col">Option B</th>
+        <th scope="col">Option C</th>
+        <th scope="col">Option D</th>
+        <th scope="col">Option E</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for question, options in item_analysis_result.items() %}
+      <tr>
+        <td scope="row">{{ question }}</td>
+        <td >{{ options['a'] }}</td>
+        <td>{{ options['b'] }}</td>
+        <td>{{ options['c'] }}</td>
+        <td>{{ options['d'] }}</td>
+        <td>{{ options['e'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form action="/reset">
+    <input class="btn btn-danger" type="submit" value="Reset">
+  </form>
+{% endif %}
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-4">
+      </div>
+      <div class="col-sm-4">
+
+      </div>
       <div class="col-sm-4"></div>
      </div>
- </div>
- <div class="row">
-  <div class="col-sm-4">
-  </div>
-  <div class="col-sm-4">
-    {% if score %}
-      <h1 class="text">Score: {{ score }}</h1>
-    {% endif %}
-  </div>
-  <div class="col-sm-4"></div>
  </div>
 </body>

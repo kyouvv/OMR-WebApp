@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from grade_paper import ProcessPage
 import os
+from item_analysis import get_item_analysis, get_Score
 
 class PaperFinder():
 	def __init__(self):
@@ -9,14 +10,13 @@ class PaperFinder():
 		self.path = ''
 		self.my = None
 		self.mx = None
-		self.answers = []
 		self.answer_key = {}
-		self.score = 0
+		self.analysis = {}
 
 	def clockwise_sort(self ,x):
 		return (np.arctan2(x[0] - self.mx, x[1] - self.my) + 0.5 * np.pi) % (2*np.pi)
 	
-	def findpaper(self, img):
+	def findpaper(self, img, answer_key):
 		cv2.namedWindow('Original Image')
 		cv2.namedWindow('Scanned Paper')
 
@@ -31,10 +31,8 @@ class PaperFinder():
 		#gray and filter the image
 		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-		blur = cv2.GaussianBlur(gray, (5, 5), 0)
-
 		#bilateral filtering removes noise and preserves edges
-		gray = cv2.bilateralFilter(blur, 11, 17, 17)
+		gray = cv2.bilateralFilter(gray, 11, 75, 75)
 		#find the edges
 		edged = cv2.Canny(gray, 150, 300)
 
@@ -98,17 +96,23 @@ class PaperFinder():
 			answers, paper, codes = ProcessPage(paper)
 			cv2.imwrite(os.path.join(self.path, 'paperResults.jpg'), paper)
 
+
 		# draw the contour
 		if biggestContour is not None:
 			if answers != -1:
 				cv2.drawContours(image, [biggestContour], -1, (0, 255, 0), 3)
 				print(answers)
-				self.answers = answers
 				if codes is not None:
 					print(codes)
 
+				if answer_key and answers:
+
+					score = get_Score(answers, answer_key)
 			else:
 				cv2.drawContours(image, [biggestContour], -1, (0, 0, 255), 3)
 
 		print("image.jpg saved")
 		cv2.imwrite(os.path.join(self.path, 'image.jpg'), image)
+
+		return answers, score
+	
