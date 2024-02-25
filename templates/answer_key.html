@@ -4,7 +4,7 @@
     {% set column = 2 %}
     <div class="container">
         <form action="{{ url_for('home') }}">
-            <button type="submit" class="btn btn-default">Back</button>
+            <button type="submit" class="btn btn-secondary">Back</button>
         </form>
         <div class="row">
             {% for c in range(column) %}
@@ -13,13 +13,13 @@
                         
                     {% for i in range(items - 25) %}
                     <form action="/answerkey" method="post" name="{{ i }}">
-                        <div class="form-group">
+                        <div class="form-control">
                         <label class="label label-default" for="a">Question {{ i + 1 }}</label>
-                        <input type="checkbox" name="question{{ i + 1 }}" value="a">
-                        <input type="checkbox" name="question{{ i + 1 }}" value="b">
-                        <input type="checkbox" name="question{{ i + 1 }}" value="c">
-                        <input type="checkbox" name="question{{ i + 1 }}" value="d">
-                        <input type="checkbox" name="question{{ i + 1 }}" value="e">
+                        <input class="form-check-input" type="radio" name="question{{ i + 1 }}" value="a">
+                        <input class="form-check-input" type="radio" name="question{{ i + 1 }}" value="b">
+                        <input class="form-check-input" type="radio" name="question{{ i + 1 }}" value="c">
+                        <input class="form-check-input" type="radio" name="question{{ i + 1 }}" value="d">
+                        <input class="form-check-input" type="radio" name="question{{ i + 1 }}" value="e">
                         </div>
                     {% endfor %}
                         </div>
@@ -27,16 +27,16 @@
                         
                     {% for i in range(items - 25) %}
                     <form action="/answerkey" method="post" name="{{ i + 26 }}">
-                        <div class="form-group">
+                        <div class="form-control">
                         <label class="label label-default" for="a">Question {{ i + 26 }}</label>
-                        <input type="checkbox" name="question{{ i + 26 }}" value="a">
-                        <input type="checkbox" name="question{{ i + 26 }}" value="b">
-                        <input type="checkbox" name="question{{ i + 26 }}" value="c">
-                        <input type="checkbox" name="question{{ i + 26 }}" value="d">
-                        <input type="checkbox" name="question{{ i + 26 }}" value="e">
+                        <input class="form-check-input" type="radio" name="question{{ i + 26 }}" value="a">
+                        <input class="form-check-input" type="radio" name="question{{ i + 26 }}" value="b">
+                        <input class="form-check-input" type="radio" name="question{{ i + 26 }}" value="c">
+                        <input class="form-check-input" type="radio" name="question{{ i + 26 }}" value="d">
+                        <input class="form-check-input" type="radio" name="question{{ i + 26 }}" value="e">
                         </div>
                     {% endfor %}
-                        <button type="submit" class="btn btn-default">Submit</button>
+                        <button type="submit" class="btn btn-success">Submit</button>
                     </form>
                 {% endif %}
                     
@@ -44,12 +44,16 @@
         </div>
         {% if answerkey %}
         <div class="col-sm-4">
-            <ul>
-                <h1> Answer Key</h1>
-            {% for key, answer in answerkey.items() %}
-                <li>{{ key }}. {{ answer }}</li>
-            {% endfor %}
-            </ul>
+            <div class="card">
+                <div class="card-body">
+                    <ul class="list-group">
+                        <h1> Answer Key</h1>
+                    {% for key, answer in answerkey.items() %}
+                        <li class="list-group-item">{{ key }}. {{ answer }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     {% endif %}
     </div>

@@ -1,95 +1,138 @@
 {% include 'header.html'   %}
-<p>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <p class="text text-center">{{ message }}</p>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-</p>
-<body>
 
-
-   <div class="container">
-    <div class="row">
-        <div class="col-sm-4">
-          <form action="/answerkey">
-            <input class="btn btn-info" type="submit" value="Answer Key">
+<body class="bg-primary bg-gradient">
+   <div class="container-sm pt-3 mx-auto">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-4 text-center">
+            <form action="/answerkey">
+              <input class="btn btn-info" type="submit" value="Answer Key">
+            </form>
+            <form class="pt-2" action="/check" method="post">
+              <div class="row g-2">
+                <div class="col-sm">
+                  <input class="form-control" type="text" name="stud_name" placeholder="Student Name">
+                </div>
+                <div class="col-sm">
+                  <input class="btn btn-success form-control" type="submit" name="redirect_button" value="Check Paper">
+                </div>
+              </div>
+            </form>
+            <a href="/analysis" class="btn btn-primary mt-3">View Responses</a>
+          </div>
+          <div class="col-sm-4 text-center">
+            <p>
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  {% for message in messages %}
+                  <div class="alert alert-info"><p class="text text-center">{{ message }}</p></div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+          </p>
+            <form method="post" action="/" enctype="multipart/form-data">
+              <div class="form-control">
+                <input type="file" name="image" class="form-control" autocomplete="off" accept=".png, .jpeg, .jpg" required>
+                <input class="btn btn-primary" type="submit" value="Submit">
+              </div>
           </form>
-          <form action="/check" method="post">
-            <input class="btn btn-success" type="submit" name="redirect_button" value="Check Paper">
-          </form>
-        </div>
+          </div>
+          <div class="col-sm-4"> 
+                {% if score %}
+                <div class="card">
+                  <div class="card-body">
+                    <h1 class="text">Score: {{ score }}</h1>
+                </div>
+              </div>
+                {% endif %}
+          </div>
+       </div>
+       <div class="row">
         <div class="col-sm-4">
-          <form method="post" action="/" enctype="multipart/form-data">
-            <div class="form-group">
-              <input type="file" name="image" class="form-control" autocomplete="off" accept=".png, .jpeg, .jpg" required>
+          <div class="row pt-2">
+            <div class="col-sm-6">
+            <div class="card">
+              <div class="card-body">
+                {% if answerkey %}
+                <h3>Answer Key</h3>
+                <ul class="list-group">
+                  {% for key, answer in answerkey.items() %}
+                    <li class="list-group-item">{{ key }}. {{ answer }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+                </div>
+              </div>
             </div>
-            <input class="btn btn-primary" type="submit" value="Submit">
-        </form>
-        </div><div class="col-sm-4"> 
-          {% if score %}
-          <h1 class="text">Score: {{ score }}</h1>
-        {% endif %}
+            {% if answers %}
+            <div class="col-sm-6">
+              <div class="card">
+                <div class="card-body">
+                <h3>Answers</h3>
+              <ul class="list-group">
+              {% for i in answers %}
+                <li class="list-group-item">{{ i }}</li>
+              {% endfor %}
+            </ul>
+              </div>
+            </div>
+            </div>
+            {% endif %}
+          </div>
         </div>
-     </div>
-     <div class="row">
-      <div class="col-sm-4">
-        {% if answerkey %}
-          <h2>Answer Key</h2>
-          <ul>
-            {% for key, answer in answerkey.items() %}
-              <li>{{ key }}. {{ answer }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
+        <div class="col-sm-4">
+          {% if filename %}
+            <img class="img-fluid" src="{{ url_for('static', filename= 'img/'+ filename ) }}" alt="Uploaded Image">
+            <a href="{{ url_for('get_photo') }}" class="btn btn-primary mt-3">Download</a>
+          {% endif %}
+        </div>
+        <div class="col-sm-4 pt-2">
+          <div class="card">
+            <div class="card-body">
+              {% if item_analysis_result %}
+    <h2>Item Analysis Results</h2>
+    <div class="table-responsive"><table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Question</th>
+          <th scope="col">Option A</th>
+          <th scope="col">Option B</th>
+          <th scope="col">Option C</th>
+          <th scope="col">Option D</th>
+          <th scope="col">Option E</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for question, options in item_analysis_result.items() %}
+        <tr>
+          <td scope="row">{{ question }}</td>
+          <td >{{ options['a'] }}</td>
+          <td>{{ options['b'] }}</td>
+          <td>{{ options['c'] }}</td>
+          <td>{{ options['d'] }}</td>
+          <td>{{ options['e'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+    <form class="pt-1 text-center" action="/reset">
+      <input class="btn btn-danger" type="submit" value="Reset">
+    </form>
+  {% endif %}
+            </div>
+          </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-4"></div>
+       </div>
       </div>
-      <div class="col-sm-4">
-        {% if filename %}
-          <img class="img-responsive" src="{{ url_for('static', filename= 'img/'+ filename ) }}" alt="Uploaded Image">
-        {% endif %}
-      </div>
-      <div class="col-sm-4">
-        {% if item_analysis_result %}
-  <h2>Item Analysis Results</h2>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col">Question</th>
-        <th scope="col">Option A</th>
-        <th scope="col">Option B</th>
-        <th scope="col">Option C</th>
-        <th scope="col">Option D</th>
-        <th scope="col">Option E</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for question, options in item_analysis_result.items() %}
-      <tr>
-        <td scope="row">{{ question }}</td>
-        <td >{{ options['a'] }}</td>
-        <td>{{ options['b'] }}</td>
-        <td>{{ options['c'] }}</td>
-        <td>{{ options['d'] }}</td>
-        <td>{{ options['e'] }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <form action="/reset">
-    <input class="btn btn-danger" type="submit" value="Reset">
-  </form>
-{% endif %}
-      </div>
-     </div>
-     <div class="row">
-      <div class="col-sm-4">
-      </div>
-      <div class="col-sm-4">
-
-      </div>
-      <div class="col-sm-4"></div>
-     </div>
+    </div>
  </div>
-</body>
+ {% include 'footer.html'   %}

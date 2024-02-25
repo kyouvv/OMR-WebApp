@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 from PIL import Image
+from item_analysis import get_Score
 
-epsilon = 10 #image error sensitivity
+epsilon = 12 #image error sensitivity
 test_sensitivity_epsilon = 10 #bubble darkness error sensitivity
 answer_choices = ['a', 'b', 'c', 'd', 'e', '?'] #answer choices
 
@@ -18,11 +19,10 @@ columns = [[72.0 / scaling[0], 33 / scaling[1]], [430.0 / scaling[0], 33 / scali
 radius = 7.0 / scaling[0] #radius of the bubbles
 spacing = [35.0 / scaling[0], 32.0 / scaling[1]] #spacing of the rows and columns
 
-def ProcessPage(paper):
+def ProcessPage(paper, answer_key):
     answers = [] #contains answers
     gray_paper = cv2.cvtColor(paper, cv2.COLOR_BGR2GRAY) #convert image to grayscale
     corners = FindCorners(paper) #find the corners of the bubbled area
-    codes = None
 
     #if we can't find the markers, return an error
     if corners is None:
@@ -34,6 +34,7 @@ def ProcessPage(paper):
     #iterate over test questions
     for k in range(0, 2): #columns
         for i in range(0, 25): #rows
+            question_index = i if k == 0 else i + 25
             questions = []
             for j in range(0, 5): #answers
                 #coordinates of the answer bubble
@@ -78,15 +79,36 @@ def ProcessPage(paper):
             #append the answers to the array
             answers.append(answer_choices[min_arg])
 
-    #draw the name if found from the QR code
-    if codes is not None:
-        cv2.putText(paper, codes[0], (int(0.28*dimensions[0]), int(0.125*dimensions[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1)
-    else:
-        codes = [-1]
-    return answers, paper, codes
+            correct_answer = answer_key.get(str(question_index + 1))  # Assuming answer key starts from 1
+            if correct_answer:  # Check if a correct answer is available
+                correct_index = answer_choices.index(correct_answer)
+                # coordinates of the correct answer bubble
+                x1_correct = int((columns[k][0] + correct_index * spacing[0] - radius * 1.5) * dimensions[0] + corners[0][0])
+                y1_correct = int((columns[k][1] + i * spacing[1] - radius) * dimensions[1] + corners[0][1])
+                x2_correct = int((columns[k][0] + correct_index * spacing[0] + radius * 1.5) * dimensions[0] + corners[0][0])
+                y2_correct = int((columns[k][1] + i * spacing[1] + radius) * dimensions[1] + corners[0][1])
+                # Calculate the center coordinates of the circle
+                cx = (x1_correct + x2_correct) // 2
+                cy = (y1_correct + y2_correct) // 2
+
+                circle_color = (0, 255, 0) if answer_choices[min_arg] == correct_answer else (0, 0, 255)
+                # Draw filled circle on the correct answer bubble
+                cv2.circle(paper, (cx, cy), int(radius), circle_color, 5)
+    score = 0
+    if answers[0] != -1:
+        if answer_key and answers:
+            score = get_Score(answers, answer_key)
+            print(score)
+    
+    if score:
+        cv2.putText(paper, f"Score: {str(score)}", (int(0.95*dimensions[0]), int(0.115*dimensions[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+
+    return answers, paper, score
 
 def FindCorners(paper):
     gray_paper = cv2.cvtColor(paper, cv2.COLOR_BGR2GRAY) #convert image of paper to grayscale
+
+    gray_paper = cv2.adaptiveThreshold(gray_paper, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 
     #scaling factor used later
     ratio = len(paper[0]) / 816.0

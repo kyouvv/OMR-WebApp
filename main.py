@@ -1,8 +1,10 @@
-from flask import Flask, request, redirect, render_template, flash, url_for, session, jsonify
+from flask import Flask, request, redirect, render_template, flash, url_for, session, send_from_directory, send_file
 import os
 from werkzeug.utils import secure_filename
 from run import PaperFinder
-from item_analysis import get_item_analysis
+from item_analysis import get_item_analysis, get_response_analysis
+import random, string
+from csv_writer import write_csv
 
 
 
@@ -19,6 +21,7 @@ current_file = ''
 paper_finder = PaperFinder()
 paper_finder.path = UPLOAD_FOLDER
 item_analysis_data = {}
+responses_analysis = {}
 score = 0
 
 def allowed_file(filename):
@@ -28,17 +31,35 @@ def allowed_file(filename):
     else:
         return False
 
+def sort_dict(dict):
+    dict = {key: dict[key] for key in sorted(dict, key=lambda a: int(a))}
+    return dict
+
+def generate_session_id():
+    characterList = string.ascii_letters + string.digits
+    sessionid = ''
+    for i in range(5):
+        randomchar = random.choice(characterList)
+        sessionid += randomchar
+
+    return sessionid
+
 @app.route('/')
 def home():
-    if 'item_analysis_result' in session and 'answerkey' in session and 'score' in session:
-        return render_template('home.html',score=score, item_analysis_result=session['item_analysis_result'], answerkey=session['answerkey'])
-    if 'item_analysis_result' in session and 'answerkey' in session:
-        return render_template('home.html', item_analysis_result=session['item_analysis_result'], answerkey=session['answerkey'])
-    if 'answerkey' in session:
-        return render_template('home.html', answerkey=session['answerkey'])
-    else:
-        print('none exists')
-        return render_template('home.html')
+    if 'session_id' not in session:
+        session['session_id'] = generate_session_id()
+
+    answerkey = session.get('answerkey', {})
+    item_analysis_result = session.get('item_analysis_result', {})
+    score = session.get('score')
+    answers = session.get('answers', {})
+    filename = session.get('current_file')
+
+    return render_template('home.html', score=score, item_analysis_result=sort_dict(item_analysis_result), answerkey=sort_dict(answerkey), answers=answers, filename=filename)
+    
+@app.route('/download', methods=['GET', 'POST'])
+def get_photo():
+        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], f"{session['session_id']}.jpg"), as_attachment=True)
 
 @app.route('/', methods=['POST'])
 def upload_img():
@@ -59,13 +80,8 @@ def upload_img():
         file.save(os.path.join(UPLOAD_FOLDER, filename))
         flash('File successfully uploaded')
         session['current_file'] = filename
-        if 'answerkey' in session:
-            return render_template('home.html', answerkey=session['answerkey'], filename=filename)
-        if 'item_analysis_result' in session and 'answerkey' in session and 'score' in session:
-            return render_template('home.html', score=session['score'], item_analysis_result=session['item_analysis_result'], answerkey=session['answerkey'], filename=filename)
-        if 'item_analysis_result' in session and 'answerkey' in session:
-            return render_template('home.html', item_analysis_result=session['item_analysis_result'], answerkey=session['answerkey'])
-        return render_template('home.html', filename=filename)
+        
+        return redirect('/')
     else:
         flash('Allowed file types are .png, .jpg, .jpeg')
         return redirect(request.url)
@@ -77,23 +93,33 @@ def check_paper():
         print('checking', filename)
         # Check if answerkey is stored in session
         if 'answerkey' in session:
-            print('answer key exists')
+            session['answerkey'] = sort_dict(session['answerkey'])
             global score
             print('getting score')
-            _, score = paper_finder.findpaper(os.path.join(UPLOAD_FOLDER, filename), session['answerkey'])
-            print(score)
+            _, score = paper_finder.findpaper(os.path.join(UPLOAD_FOLDER, filename), session['answerkey'], session['session_id'])
+            name = request.form.get('stud_name')
+            if name:
+                if 'stud_score' not in session:
+                    session['stud_score'] = {}
+                session['stud_score'][name] = score
+                print(session['stud_score'])
             session['score'] = score
 
             # Perform item analysis
             if score is not None and score != -1:
-                global item_analysis_data
-                answers, _ = paper_finder.findpaper(os.path.join(UPLOAD_FOLDER, filename), session['answerkey'])
+                global item_analysis_data, responses_results
+                answers, _ = paper_finder.findpaper(os.path.join(UPLOAD_FOLDER, filename), session['answerkey'], session['session_id'])
                 item_analysis_result = get_item_analysis(answers, session['answerkey'], item_analysis_data)
+                responses_results = get_response_analysis(answers, session['answerkey'], responses_analysis)
+                if type(answers) is not int:
+                    session['answers'] = answers
 
                 session['item_analysis_result'] = item_analysis_result
-
+                session['responses_result'] = responses_results
+                sorted(session['answerkey'], key=lambda a: int(a))
+                session['current_file'] = f"{session['session_id']}.jpg"
                 # Pass item analysis result to home.html
-                return render_template('home.html', filename=os.path.join('paperResults.jpg'), score=session['score'], item_analysis_result=session['item_analysis_result'], answerkey=session['answerkey'])
+                return redirect('/')
             else:
                 flash('Error processing the paper.')
                 return redirect('/')
@@ -107,31 +133,59 @@ def check_paper():
 @app.route('/answerkey')
 def answerkey():
     if 'answerkey' in session:
-        answerkey = session['answerkey']
-        return render_template('answer_key.html', answerkey=answerkey)
+        session['answerkey'] = sort_dict(session['answerkey'])
+        return render_template('answer_key.html', answerkey=session['answerkey'])
     else:
         return render_template('answer_key.html')
 
 @app.route('/answerkey', methods=['POST'])
 def get_answer_key():
-    answerkey = {}
+    answerkey = {}  # Print the entire form data to see what's being received
     if request.form:
         for key, value in request.form.items():
+            print("Key:", key, "Value:", value)  # Print key-value pairs to check if they're correct
             if key.startswith('question'):
                 question_num = int(key.replace('question', ''))
                 answerkey[question_num] = value
 
         session['answerkey'] = answerkey
+        print("Answer Key set in session:", session['answerkey'])  # Check if answer key is being set correctly
 
     return redirect('/')
 
 @app.route('/reset')
 def reset():
     global item_analysis_data, score
+    item_analysis_data = {}
     session.pop('item_analysis_result')
     session.pop('score')
 
     return redirect('/')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/analysis', methods=['GET', 'POST'])
+def analysis():
+    if 'responses_result' not in session:
+        return render_template('responses.html')
+    
+    if request.method == 'POST' and 'download_csv' in request.form:
+        write_csv(session['stud_score'], session['responses_result'], session['item_analysis_result'], session['session_id'])
+        return send_file(f'{session["session_id"]}.csv', as_attachment=True)
+    
+    if request.method == 'POST' and 'reset_scores' in request.form:
+        session.pop('stud_score')
+
+    if request.method == 'POST' and 'reset_response' in request.form:
+        session.pop('responses_result')
+
+    stud_score = session.get('stud_score', {})
+    responses_results = session.get('responses_result', {})
+    
+    return render_template('responses.html', responses=responses_results, stud_score=stud_score)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

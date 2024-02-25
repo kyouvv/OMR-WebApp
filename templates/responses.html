@@ -1,0 +1,80 @@
+{% include 'header.html' %}
+<body>
+    <div class="card text-center">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card pt-1">
+                        <div class="card-body">
+                            {% if responses %}
+    <h1>Responses</h1>
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Correct</th>
+                <th>Incorrect</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question_num, data in responses.items() %}
+            <tr>
+                <td>{{ question_num }}</td>
+                <td>{{ data.correct }}</td>
+                <td>{{ data.incorrect }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="post" action="{{ url_for('analysis') }}">
+        <input class="btn btn-danger" name="reset_response" value="Reset Responses" type="submit">
+    </form>
+    {% else %}
+    <p>No responses available.</p>
+    {% endif %}
+                    </div>
+                </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if stud_score %}
+                            <h1>
+                                Student Scores
+                            </h1>
+                                <table class="table table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for name, score in stud_score.items() %}
+                                            <tr>
+                                                <td>{{ name }}</td>
+                                                <td>{{ score }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <form method="post" action="{{ url_for('analysis') }}">
+                                    <input class="btn btn-danger" name="reset_scores" value="Reset Scores" type="submit">
+                                </form>
+                                {% else %}
+                                <p>No Scores available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>  
+            </div>
+            {% if stud_score or responses %}
+            <form class="pt-2" method="post" action="{{ url_for('analysis') }}">
+                <input type="hidden" name="download_csv" value="true">
+                <button type="submit" class="btn btn-primary">Download CSV</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
