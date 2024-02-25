@@ -77,6 +77,10 @@ def upload_img():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         print("Saving file to:", os.path.join(UPLOAD_FOLDER, filename))
+
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)  # Create the directory if it doesn't exist
+        
         file.save(os.path.join(UPLOAD_FOLDER, filename))
         flash('File successfully uploaded')
         session['current_file'] = filename
