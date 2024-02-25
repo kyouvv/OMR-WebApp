@@ -10,7 +10,7 @@ from csv_writer import write_csv
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/img'
+UPLOAD_FOLDER = '/static/img'
 
 app.config['SECRET_KEY'] = 'fucku'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
