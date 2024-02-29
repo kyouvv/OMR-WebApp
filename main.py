@@ -63,6 +63,9 @@ def get_photo():
 
 @app.route('/', methods=['POST'])
 def upload_img():
+    if request.method != 'POST':
+        return redirect(url_for('home'))
+    
     if 'image' not in request.files:
         flash('No File Part')
         return redirect(request.url)
@@ -92,6 +95,9 @@ def upload_img():
 
 @app.route('/check', methods=['POST'])
 def check_paper():
+    if request.method != 'POST':
+        return redirect(url_for('home'))
+
     if 'current_file' in session:
         filename = session['current_file']
         print('checking', filename)
@@ -144,6 +150,9 @@ def answerkey():
 
 @app.route('/answerkey', methods=['POST'])
 def get_answer_key():
+    if request.method != 'POST':
+        return redirect(url_for('home'))
+
     answerkey = {}  # Print the entire form data to see what's being received
     if request.form:
         for key, value in request.form.items():
