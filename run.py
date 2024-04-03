@@ -36,7 +36,7 @@ class PaperFinder():
 		kernel = np.ones((10,10),np.uint8)
 		image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel, iterations= 5)
 
-		cv2.imwrite('static/test/morphology.jpg', image)
+		# cv2.imwrite('static/test/morphology.jpg', image)
 
 		#gray and filter the image
 		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -44,17 +44,20 @@ class PaperFinder():
 		#bilateral filtering removes noise and preserves edges
 		gray = cv2.GaussianBlur(gray, (3,3), 0)
 
-		cv2.imwrite('static/test/blur.jpg', gray)
+		# cv2.imwrite('static/test/blur.jpg', gray)
+
+		im_copy = gray.copy()
 
 		gray = self.binarize(gray)
 		
 		#find the edges
 		edged = cv2.Canny(gray, 75, 175)
 
-		cv2.imwrite('static/test/edged.jpg', edged)
+		# cv2.imwrite('static/test/edged.jpg', edged)
 
 		#find the contours
 		contours, temp_img = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
 
 		contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
 		biggestContour = None
@@ -69,7 +72,13 @@ class PaperFinder():
 
 			#return the biggest 4 sided approximated contour
 			if len(approx) == 4:
+				print(approx)
 				biggestContour = approx
+				contour_img = cv2.drawContours(im_copy, biggestContour, -1, [0, 255, 0], 3)
+		
+				# print("Contours")
+
+				cv2.imwrite("contours.jpg", contour_img)
 				break
 
 		#used for the perspective transform
@@ -101,6 +110,7 @@ class PaperFinder():
 		paper = []
 		points *= ratio
 		answers = 1
+		score = 0
 		if biggestContour is not None:
 			#create persepctive matrix
 			M = cv2.getPerspectiveTransform(points, desired_points)
